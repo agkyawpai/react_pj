@@ -12,7 +12,7 @@ import {
 } from '@coreui/react'
 import { useHistory } from 'react-router'
 import Loading from "../../common/Loading";
-import SuccessError from "../../common/SuccessError"; 
+import SuccessError from "../../common/SuccessError";
 import { ApiRequest } from "../../common/ApiRequest";
 import { emailChk, nullChk, numberChk, validateName } from "../../common/CommonValidation";
 import Confirmation from "../../common/Confirmation";
@@ -20,12 +20,13 @@ const AdminRegAndListIndex = () => {
   const history = useHistory();
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
-  const [admin,setAdmin]=useState([])
+  const [admin, setAdmin] = useState([])
   const [totalRow, setTotalRow] = useState(""); // for user list table rows
   const [currentPage, setCurrentPage] = useState(); // for user list table current page
   const [lastPage, setLastPage] = useState(""); // for user list table last page
   const [updateID, setUpdateID] = useState(localStorage.getItem(`Update`));
   const [loading, setLoading] = useState(false); // For Loading
+  const [iDdelete, setIDdelete] = useState("");
   const [updateStatus, setUpdateStatus] = useState(false); //for update status
   const [error, setError] = useState([]); // for error message
   const [success, setSuccess] = useState([]); // for success message
@@ -34,7 +35,7 @@ const AdminRegAndListIndex = () => {
   const [content, setContent] = useState("");
   const [confirmType, setConfirmType] = useState("");
 
-  useEffect(()=> {
+  useEffect(() => {
     let flag = localStorage.getItem(`LoginProcess`)
     if (flag == "true") {
       console.log("Login process success")
@@ -44,16 +45,16 @@ const AdminRegAndListIndex = () => {
 
     (async () => {
       setLoading(true);
-        await search();
+      await search();
       setLoading(false);
     })();
 
 
-  },[])
- 
+  }, [])
 
-  const search = async (page = 1)=> {
-    
+
+  const search = async (page = 1) => {
+
     let search = {
       method: "get",
       url: `admin/get?page=${page}`,
@@ -64,11 +65,11 @@ const AdminRegAndListIndex = () => {
       setError(response.message);
     } else {
       if (response.data.status === "OK") {
-          setAdmin(response.data.data.data);
-          setCurrentPage(response.data.data.current_page);
-          setLastPage(response.data.data.last_page);
-          setTotal(response.data.data.total);
-        
+        setAdmin(response.data.data.data);
+        setCurrentPage(response.data.data.current_page);
+        setLastPage(response.data.data.last_page);
+        setTotal(response.data.data.total);
+
       } else {
         setError([response.data.message]);
         setAdmin([]);
@@ -90,8 +91,8 @@ const AdminRegAndListIndex = () => {
     setUserName("");
     setPassword("");
   }
-const saveClick = () => {
-  let errMsg = []
+  const saveClick = () => {
+    let errMsg = []
     if (!nullChk(userName)) {
       errMsg.push("Please fill Username");
     } else if (!validateName(userName)) {
@@ -99,7 +100,7 @@ const saveClick = () => {
     }
     if (!nullChk(password)) {
       errMsg.push("Please fill Password");
-    } 
+    }
     if (errMsg.length <= 0) {
       setConfirmationModal(true);
       setContent("Are you sure want Save?");
@@ -107,17 +108,17 @@ const saveClick = () => {
     } else {
       setError(errMsg)
     }
-}
-  const saveOK = async() => {
+  }
+  const saveOK = async () => {
     setLoading(true);
     setUpdateStatus(false);
     let saveData = {
-    
+
       method: "post",
       url: `admin/save`,
       params: {
-       name : userName,
-      password: password,
+        name: userName,
+        password: password,
       },
     };
     let response = await ApiRequest(saveData);
@@ -145,7 +146,7 @@ const saveClick = () => {
 
 
 
-  const editClick = async(id) => {
+  const editClick = async (id) => {
     setLoading(true);
     setUpdateStatus(true);
     setUpdateID(id);
@@ -174,27 +175,63 @@ const saveClick = () => {
   }
 
 
+  const delClick = (i) => {
 
-  const delClick = (id) => {
-    alert(id);
+    setIDdelete(i);
+    setConfirmationModal(true);
+    setContent("Are you sure want Delete?");
+    setConfirmType("delete");
+
+  }
+
+  const deleteOK = async () => {
+    setLoading(true);
+    let obj = {
+      method: "delete",
+      url: `admin/delete/${iDdelete}`,
+    };
+    let response = await ApiRequest(obj);
+    setLoading(false);
+    if (response.flag === false) {
+      setSuccess([]);
+      setError(response.message);
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    } else {
+      if (response.data.status === "OK") {
+        window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+        let page = currentPage;
+        setSuccess([response.data.message]);
+        if (admin.length - 1 == 0) {
+          page = currentPage - 1;
+        }
+        // tempSearch(page);
+        setError([]);
+      } else {
+        window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+        setError([response.data.message]);
+        setSuccess([]);
+      }
+    }
+    setConfirmationModal(false);
+    setLoading(false);
   }
   const updateClick = async () => {
     setConfirmationModal(true);
     setContent("Are you sure want update?");
     setConfirmType("update");
   }
-  
 
-  const updateOK = async() => {
+
+  const updateOK = async () => {
     setLoading(true);
     setUpdateStatus(false);
     let saveData = {
-    
+
       method: "post",
       url: `admin/update/${updateID}`,
       params: {
-       name : userName,
-      password: password,
+        name: userName,
+        password: password,
       },
     };
     let response = await ApiRequest(saveData);
@@ -230,13 +267,13 @@ const saveClick = () => {
     <>
       <CRow>
         <CCol xs="12">
-        <SuccessError success={success} error={error} />
+          <SuccessError success={success} error={error} />
           <CCard>
             <CCardHeader>
               <h4 className='m-0'>Admin Registeration</h4>
             </CCardHeader>
             <CCardBody>
-              
+
               <CRow style={{ marginTop: "10px" }}>
                 <CCol lg="6">
                   <CRow>
@@ -249,7 +286,7 @@ const saveClick = () => {
                     </CCol>
                     <CCol lg="1"></CCol>
                   </CRow>
-               
+
 
                 </CCol>
 
@@ -265,22 +302,22 @@ const saveClick = () => {
                     </CCol>
                     <CCol lg="1"></CCol>
                   </CRow>
-                 
+
                 </CCol>
 
               </CRow>
               <CRow style={{ justifyContent: "center" }} className="mt-4">
-              { updateStatus == false && (
-    <CButton className="form-btn" onClick={saveClick}>
-      Save
-    </CButton>
-  )}
-{
-  updateStatus == true && (
-    <CButton className="form-btn" onClick={updateClick}>
-      Update
-    </CButton>
-  )}
+                {updateStatus == false && (
+                  <CButton className="form-btn" onClick={saveClick}>
+                    Save
+                  </CButton>
+                )}
+                {
+                  updateStatus == true && (
+                    <CButton className="form-btn" onClick={updateClick}>
+                      Update
+                    </CButton>
+                  )}
               </CRow>
             </CCardBody>
           </CCard>
@@ -295,90 +332,90 @@ const saveClick = () => {
               <h4 className='m-0'>Admin List</h4>
             </CCardHeader>
             <CCardBody>
-            <CRow>
-        <CCol>
-        {admin.length > 0 && (
-          <>
-          <p className='mb-0 font-weight-bold'>Total : {total} row(s)</p>
-          <div className='overflow'>
-            <table className='emp-list-table'>
-              <thead>
-                <tr>
-                  <th className="text-center" width={50} >No</th>
-                  <th className='text-center' width={120}>UserName</th>
-                  <th className='text-center' width={120}>UserCode</th>
-                  <th className='text-center' width={120}>Password</th>
-                  <th className='text-center' width={30} colSpan={2}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {admin.map((data, index) => {
-                  return (
-                    <tr key={index}>
-                      <td width={50} className="text-center">{index + 1}</td>
-                      <td className="text-center" width={300}>{data.name}</td>
-                      <td className="text-center" width={300}>{data.user_code}</td>
-                      <td className="text-center" width={300}> {data.password}</td>
-                      <td style={{ border: "1px solid" , textAlign:"center"}}>
-                              <div className="user-before">
-                                <CImg
-                                  src="/image/Edit-Component-inactive.svg"
-                                  onClick={() => {
-                                    editClick(data.id);
-                                  }}
-                                  style={{
-                                    width: "40px",
-                                    height: "40px",
-                                    cursor: "pointer",
-                                  }}
-                                ></CImg>
-                                <CImg
-                                  className="user-after"
-                                  src="/image/Edit-Component-active.svg"
-                                  onClick={() => {
-                                    editClick(data.id);
-                                  }}
-                                  style={{
-                                    width: "40px",
-                                    height: "40px",
-                                    cursor: "pointer",
-                                  }}
-                                ></CImg>
-                              </div>
-                            </td>
-                      <td style={{ border: "1px solid" , textAlign:"center"}}>
-                              <div className="user-before">
-                                <CImg
-                                  src="/image/Delete-Component-inactive.svg"
-                                  onClick={() => delClick(data.id)}
-                                  style={{
-                                    width: "40px",
-                                    height: "40px",
-                                    cursor: "pointer",
-                                  }}
-                                ></CImg>
-                                <CImg
-                                  className="user-after"
-                                  src="/image/Delete-Component-active.svg"
-                                  onClick={() => delClick(data.id)}
-                                  style={{
-                                    width: "40px",
-                                    height: "40px",
-                                    cursor: "pointer",
-                                  }}
-                                ></CImg>
-                              </div>
-                            </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-          </>
-        )}
-        </CCol>
-      </CRow>
+              <CRow>
+                <CCol>
+                  {admin.length > 0 && (
+                    <>
+                      <p className='mb-0 font-weight-bold'>Total : {total} row(s)</p>
+                      <div className='overflow'>
+                        <table className='emp-list-table'>
+                          <thead>
+                            <tr>
+                              <th className="text-center" width={50} >No</th>
+                              <th className='text-center' width={120}>UserName</th>
+                              <th className='text-center' width={120}>UserCode</th>
+                              <th className='text-center' width={120}>Password</th>
+                              <th className='text-center' width={30} colSpan={2}>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {admin.map((data, index) => {
+                              return (
+                                <tr key={index}>
+                                  <td width={50} className="text-center">{index + 1}</td>
+                                  <td className="text-center" width={300}>{data.name}</td>
+                                  <td className="text-center" width={300}>{data.user_code}</td>
+                                  <td className="text-center" width={300}> {data.password}</td>
+                                  <td style={{ border: "1px solid", textAlign: "center" }}>
+                                    <div className="user-before">
+                                      <CImg
+                                        src="/image/Edit-Component-inactive.svg"
+                                        onClick={() => {
+                                          editClick(data.id);
+                                        }}
+                                        style={{
+                                          width: "40px",
+                                          height: "40px",
+                                          cursor: "pointer",
+                                        }}
+                                      ></CImg>
+                                      <CImg
+                                        className="user-after"
+                                        src="/image/Edit-Component-active.svg"
+                                        onClick={() => {
+                                          editClick(data.id);
+                                        }}
+                                        style={{
+                                          width: "40px",
+                                          height: "40px",
+                                          cursor: "pointer",
+                                        }}
+                                      ></CImg>
+                                    </div>
+                                  </td>
+                                  <td style={{ border: "1px solid", textAlign: "center" }}>
+                                    <div className="user-before">
+                                      <CImg
+                                        src="/image/Delete-Component-inactive.svg"
+                                        onClick={() => delClick(data.id)}
+                                        style={{
+                                          width: "40px",
+                                          height: "40px",
+                                          cursor: "pointer",
+                                        }}
+                                      ></CImg>
+                                      <CImg
+                                        className="user-after"
+                                        src="/image/Delete-Component-active.svg"
+                                        onClick={() => delClick(data.id)}
+                                        style={{
+                                          width: "40px",
+                                          height: "40px",
+                                          cursor: "pointer",
+                                        }}
+                                      ></CImg>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  )}
+                </CCol>
+              </CRow>
             </CCardBody>
           </CCard>
         </CCol>
@@ -388,6 +425,7 @@ const saveClick = () => {
         content={content}
         type={confirmType}
         saveOK={saveOK}
+        deleteOK={deleteOK}
         confirmOK={confirmOK}
         updateOK={updateOK}
         cancel={() => setConfirmationModal(false)}

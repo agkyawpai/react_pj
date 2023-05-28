@@ -14,6 +14,7 @@ const EmployeeListIndex = () => {
   const [employeeList, setEmployeeList] = useState([]); // for user list table data
   const [confirmationModal, setConfirmationModal] = useState(false);
   const [content, setContent] = useState("");
+  const [iDdelete, setIDdelete] = useState("");
   const [confirmType, setConfirmType] = useState("");
   const [currentPage, setCurrentPage] = useState(); // for user list table current page
   const [lastPage, setLastPage] = useState(""); // for user list table last page
@@ -125,17 +126,21 @@ const EmployeeListIndex = () => {
 
 
 
-  const delClick = async () => {
+  const delClick = (i) => {
+
+    setIDdelete(i);
     setConfirmationModal(true);
     setContent("Are you sure want Delete?");
     setConfirmType("delete");
 
   }
-  const deleteOK = async (deleteId) => {
+
+
+  const deleteOK = async () => {
     setLoading(true);
     let obj = {
       method: "delete",
-      url: `employee/delete/${deleteId}`,
+      url: `employee/delete/${iDdelete}`,
     };
     let response = await ApiRequest(obj);
     setLoading(false);
